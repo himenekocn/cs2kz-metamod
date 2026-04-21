@@ -27,7 +27,7 @@ static_function bool ReadFromBuffer(const char *&ptr, const char *end, void *dst
 		return false;
 	}
 
-	memcpy(static_cast<void*>(dst), ptr, size);
+	memcpy(static_cast<void *>(dst), ptr, size);
 	ptr += size;
 	return true;
 }

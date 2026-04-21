@@ -15,20 +15,26 @@ using SchemaTableMap_t = std::map<uint32_t, SchemaKeyValueMap_t>;
 
 static constexpr uint32_t g_ChainKey = hash_32_fnv1a_const("__m_pChainEntity");
 
-static bool IsFieldNetworked(const char* cppName, SchemaClassFieldData_t& field)
+static bool IsFieldNetworked(const char *cppName, SchemaClassFieldData_t &field)
 {
 	if (!GameEntitySystem())
+	{
 		return false;
+	}
 
 	// Just use a random class to get access to the full database, as some schema classes don't have entity representations
-	CNetworkSerializerCodeGenDatabase* pDatabase = GameEntitySystem()->FindClassByName("CBaseEntity")->m_NetworkSerializerInfo->m_pDatabase;
+	CNetworkSerializerCodeGenDatabase *pDatabase = GameEntitySystem()->FindClassByName("CBaseEntity")->m_NetworkSerializerInfo->m_pDatabase;
 	int index = pDatabase->m_ClassInfos.Find(cppName);
 
 	if (index == pDatabase->m_ClassInfos.InvalidIndex())
+	{
 		return false;
+	}
 
 	if (pDatabase->m_ClassInfos[index]->FindField(field.m_pszName))
+	{
 		return true;
+	}
 
 	return false;
 }
