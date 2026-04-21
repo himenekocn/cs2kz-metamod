@@ -27,7 +27,7 @@ static_function bool ReadFromBuffer(const char *&ptr, const char *end, void *dst
 		return false;
 	}
 
-	memcpy(dst, ptr, size);
+	memcpy(static_cast<void*>(dst), ptr, size);
 	ptr += size;
 	return true;
 }
@@ -1003,7 +1003,7 @@ bool KZ::replaysystem::compression::ReadCmdDataCompressed(FileHandle_t file, std
 		if (flags & CHANGED_CMD_BUTTONS_0) { memcpy(&current.buttons[0], readPtr, sizeof(current.buttons[0])); readPtr += sizeof(current.buttons[0]); }
 		if (flags & CHANGED_CMD_BUTTONS_1) { memcpy(&current.buttons[1], readPtr, sizeof(current.buttons[1])); readPtr += sizeof(current.buttons[1]); }
 		if (flags & CHANGED_CMD_BUTTONS_2) { memcpy(&current.buttons[2], readPtr, sizeof(current.buttons[2])); readPtr += sizeof(current.buttons[2]); }
-		if (flags & CHANGED_CMD_ANGLES) { memcpy(&current.angles, readPtr, sizeof(current.angles)); readPtr += sizeof(current.angles); }
+		if (flags & CHANGED_CMD_ANGLES) { memcpy(static_cast<void*>(&current.angles), readPtr, sizeof(current.angles)); readPtr += sizeof(current.angles); }
 		if (flags & CHANGED_CMD_MOUSEDX) { memcpy(&current.mousedx, readPtr, sizeof(current.mousedx)); readPtr += sizeof(current.mousedx); }
 		if (flags & CHANGED_CMD_MOUSEDY) { memcpy(&current.mousedy, readPtr, sizeof(current.mousedy)); readPtr += sizeof(current.mousedy); }
 		if (flags & CHANGED_CMD_SENSITIVITY) { memcpy(&current.sensitivity, readPtr, sizeof(current.sensitivity)); readPtr += sizeof(current.sensitivity); }

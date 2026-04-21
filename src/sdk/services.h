@@ -38,7 +38,8 @@ private:
 	virtual void unk_16() = 0;
 	virtual void unk_17() = 0;
 	virtual void unk_18() = 0;
-
+	virtual void unk_19() = 0;
+	
 public:
 	CNetworkVarChainer chainEntity;
 	uint8 __pad0028[0x8];
