@@ -443,7 +443,7 @@ void Jump::UpdateAACallPost(Vector wishdir, f32 wishspeed, f32 accel)
 	// The rest is applied in TryPlayerMove, but let's just add it here for simplicity.
 	// Technically this is not 100% accurate if the player collides with something,
 	// but it should be close enough.
-	call->velocityPost += this->player->currentMoveData->m_vecFrameVelocityDelta;
+	call->velocityPost += this->player->currentMoveData->m_vecAcceleration;
 	strafe->UpdateStrafeMaxSpeed(call->velocityPost.Length2D());
 
 	// Check if we are still tracking release for the strafe.

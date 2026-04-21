@@ -256,34 +256,29 @@ public:
 	CMoveData() = default;
 
 	CMoveData(const CMoveData &source)
-		: CMoveDataBase(source), m_outWishVel {source.m_outWishVel}, m_vecOldAngles {source.m_vecOldAngles},
-		  m_vecInputRotated {source.m_vecInputRotated}, m_vecContinousAcceleration {source.m_vecContinousAcceleration},
-		  m_vecFrameVelocityDelta {source.m_vecFrameVelocityDelta}, m_flMaxSpeed {source.m_flMaxSpeed}
+		: CMoveDataBase(source), m_outWishVel{source.m_outWishVel}, m_vecOldAngles{source.m_vecOldAngles},
+		  m_vecWalkWishedVelocity{source.m_vecWalkWishedVelocity}, m_vecAcceleration{source.m_vecAcceleration},
+		  m_vecContinuousAcceleration{source.m_vecContinuousAcceleration}, m_flMaxSpeed{source.m_flMaxSpeed}
 	{
 	}
 
 	Vector m_outWishVel;
 	QAngle m_vecOldAngles;
-	// World space input vector. Used to compare against last the movement services' previous rotation for ground movement stuff.
-	Vector m_vecInputRotated;
-	// u/s^2.
-	Vector m_vecContinousAcceleration;
-	// Immediate delta in u/s. Air acceleration bypasses per second acceleration, applies up to half of its impulse to the velocity and the rest goes
-	// straight into this.
-	Vector m_vecFrameVelocityDelta;
+	Vector2D m_vecWalkWishedVelocity;
+
+	Vector m_vecAcceleration;
+
+	Vector m_vecContinuousAcceleration;
+
 	float m_flMaxSpeed;
 	float m_flClientMaxSpeed;
 	float m_flFrictionDecel;
-	// 2026-01-21 update adds these fields to calculate exactly when during the tick the player hit the ground using physics equations
-	// rather than just assuming they landed at the end of the tick, somewhat similar to how CS2KZ landingTimeActual formula works.
-	float m_flPreAirMovePosZ;
-	float m_flPreAirMoveVelZ;
-	float m_flPreAirMoveAccelZ;
+	uint8_t _padding[3 * 4];
+
 	bool m_bInAir;
 	bool m_bGameCodeMovedPlayer; // true if usercmd cmd number == (m_nGameCodeHasMovedPlayerAfterCommand + 1)
 };
-
-static_assert(sizeof(CMoveData) == 320, "Class didn't match expected size");
+static_assert(sizeof(CMoveData) == 312, "Class didn't match expected size");
 
 // Custom data types goes here.
 
