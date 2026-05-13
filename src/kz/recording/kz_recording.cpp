@@ -7,6 +7,7 @@
 #include "kz/language/kz_language.h"
 #include "kz/spec/kz_spec.h"
 #include "utils/simplecmds.h"
+#include "utils/async_file_io.h"
 
 #include "sdk/cskeletoninstance.h"
 #include "sdk/usercmd.h"
@@ -269,9 +270,21 @@ void KZRecordingService::CheckRecorders()
 				UUID_t localUUID = recorderPtr->uuid; // capture before move
 				KZRecordingService::fileWriter->QueueWrite(
 					std::move(recorderPtr),
-					// Success: deliver buffer to RunSubmission state machine
+					// Success: persist to disk eagerly, then deliver buffer to RunSubmission.
+					// We must NOT rely on RunSubmission being alive here — if the write thread
+					// finished after a map change, RunSubmission::Clear() may have already GC'd
+					// the submission. AsyncFileIO::QueueWriteBuffer is fire-and-forget and
+					// survives map changes, so the replay file is preserved either way.
 					[localUUID](const UUID_t &, f32, std::vector<char> &&buffer)
 					{
+						if (g_asyncFileIO)
+						{
+							char replayPath[512];
+							V_snprintf(replayPath, sizeof(replayPath), "%s/%s.replay", KZ_REPLAY_PATH, localUUID.ToString().c_str());
+							// Copy the buffer for disk persistence; RunSubmission still needs ownership.
+							std::vector<char> diskCopy = buffer;
+							g_asyncFileIO->QueueWriteBuffer(replayPath, std::move(diskCopy));
+						}
 						RunSubmission *sub = RunSubmission::GetByUUID(localUUID);
 						if (sub)
 						{

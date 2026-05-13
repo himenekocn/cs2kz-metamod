@@ -727,10 +727,14 @@ static_function bool Hook_ActivateServer()
 
 	META_CONPRINTF("[KZ] Loading map %s, workshop ID %llu, size %llu\n", g_pKZUtils->GetCurrentMapVPK().Get(), id, size);
 
+	// Drain in-flight replay write threads FIRST so that buffers produced on the
+	// previous map are handed off to RunSubmission (via the success callback) BEFORE
+	// RunSubmission::Clear() destroys all pending submissions. AsyncFileIO writes
+	// are fire-and-forget and survive the Clear() that follows.
+	KZRecordingService::OnActivateServer();
 	RunSubmission::Clear();
 	KZ::misc::OnActivateServer();
 	KZDatabaseService::SetupMap();
-	KZRecordingService::OnActivateServer();
 	KZRacingService::OnActivateServer();
 	KZGlobalService::OnActivateServer();
 

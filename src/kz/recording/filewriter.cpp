@@ -18,6 +18,12 @@ void ReplayFileWriter::Stop()
 	m_shutdownCV.wait(lock, [this] { return m_activeThreads == 0; });
 }
 
+bool ReplayFileWriter::DrainWithTimeout(std::chrono::milliseconds timeout)
+{
+	std::unique_lock<std::mutex> lock(m_shutdownMutex);
+	return m_shutdownCV.wait_for(lock, timeout, [this] { return m_activeThreads == 0; });
+}
+
 template<typename F>
 void ReplayFileWriter::SpawnThread(F &&work)
 {

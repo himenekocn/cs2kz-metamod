@@ -3,6 +3,7 @@
 #include <optional>
 #include <unordered_map>
 #include <atomic>
+#include <chrono>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -175,8 +176,22 @@ public:
 	ReplayFileWriter();
 	~ReplayFileWriter();
 
-	// Drain active threads — blocks until all in-flight serializations finish.
+	// Drain active threads — blocks until all in-flight serializations finish. Use only on
+	// plugin shutdown; main-thread callers in steady-state should prefer DrainWithTimeout.
 	void Stop();
+
+	// Wait up to `timeout` for in-flight write threads to finish. Returns true if all
+	// threads exited; false on timeout (threads keep running detached in the background).
+	// kMaxConcurrentWrites already caps the memory footprint of background threads, so a
+	// false return is not a correctness issue — completion callbacks are still marshalled
+	// back via RunFrame() once each thread finishes.
+	bool DrainWithTimeout(std::chrono::milliseconds timeout);
+
+	// Current count of in-flight serialization/write threads. Useful for diagnostics.
+	int ActiveThreadCount() const
+	{
+		return m_activeThreads.load();
+	}
 
 	// Spawn a thread to serialize recorder to memory; delivers buffer to onSuccess on the main thread.
 	void QueueWrite(std::unique_ptr<Recorder> recorder, BufferSuccessCallback onSuccess, WriteFailureCallback onFailure);

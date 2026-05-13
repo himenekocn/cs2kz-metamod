@@ -73,13 +73,27 @@ void KZRecordingService::Shutdown()
 
 void KZRecordingService::OnActivateServer()
 {
-	// Drain all in-flight replay write threads before resetting per-player state.
-	// Without this, detached writer threads spawned on the previous map keep their
-	// Recorder payloads (plus zstd buffers) alive across the map change, causing
-	// memory to monotonically climb across consecutive map cycles.
+	// Give in-flight replay write threads a brief window to finish so their completion
+	// callbacks (e.g. RunSubmission::OnReplayReady) can run while per-map state still
+	// exists. Threads that don't finish in time keep running in the background —
+	// kMaxConcurrentWrites caps their aggregate memory footprint, and their completion
+	// callbacks will be marshalled back via RunFrame() on a subsequent game frame.
+	// We MUST avoid an unbounded blocking Stop() here: it would freeze the main thread
+	// across the entire `changelevel` (potentially for seconds on large replays / slow
+	// disks), which the engine treats as a hang.
 	if (fileWriter)
 	{
-		fileWriter->Stop();
+		constexpr auto kDrainTimeout = std::chrono::milliseconds(500);
+		if (!fileWriter->DrainWithTimeout(kDrainTimeout))
+		{
+			Warning("[KZ] %d replay write thread(s) still running across map change; "
+					"they will complete in the background\n",
+					fileWriter->ActiveThreadCount());
+		}
+		// Dispatch any completion callbacks that landed during the wait so that
+		// downstream consumers (RunSubmission, anticheat infraction save, etc.) can
+		// take ownership of replay buffers before per-map state is torn down.
+		fileWriter->RunFrame();
 	}
 	for (i32 i = 0; i < MAXPLAYERS + 1; i++)
 	{
