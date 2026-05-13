@@ -42,11 +42,7 @@ void ReplayFileWriter::QueueFailureCallback(WriteFailureCallback onFailure, cons
 	}
 	std::string errorStr = error ? error : "";
 	std::lock_guard<std::mutex> lock(m_completedLock);
-	m_completedCallbacks.push(
-		[onFailure = std::move(onFailure), errorStr = std::move(errorStr)]()
-		{
-			onFailure(errorStr.c_str());
-		});
+	m_completedCallbacks.push([onFailure = std::move(onFailure), errorStr = std::move(errorStr)]() { onFailure(errorStr.c_str()); });
 }
 
 void ReplayFileWriter::QueueWrite(std::unique_ptr<Recorder> recorder, BufferSuccessCallback onSuccess, WriteFailureCallback onFailure)
