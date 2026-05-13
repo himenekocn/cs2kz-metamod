@@ -34,8 +34,30 @@ void ReplayFileWriter::SpawnThread(F &&work)
 		.detach();
 }
 
+void ReplayFileWriter::QueueFailureCallback(WriteFailureCallback onFailure, const char *error)
+{
+	if (!onFailure)
+	{
+		return;
+	}
+	std::string errorStr = error ? error : "";
+	std::lock_guard<std::mutex> lock(m_completedLock);
+	m_completedCallbacks.push(
+		[onFailure = std::move(onFailure), errorStr = std::move(errorStr)]()
+		{
+			onFailure(errorStr.c_str());
+		});
+}
+
 void ReplayFileWriter::QueueWrite(std::unique_ptr<Recorder> recorder, BufferSuccessCallback onSuccess, WriteFailureCallback onFailure)
 {
+	if (m_activeThreads.load() >= kMaxConcurrentWrites)
+	{
+		Warning("[KZ] Replay writer saturated (%d active threads), dropping in-memory replay\n", m_activeThreads.load());
+		// recorder is destroyed when this scope exits, freeing its memory immediately.
+		QueueFailureCallback(std::move(onFailure), "Replay writer saturated; in-memory write dropped");
+		return;
+	}
 	SpawnThread(
 		[this, rec = std::move(recorder), onSuccess = std::move(onSuccess), onFailure = std::move(onFailure)]()
 		{
@@ -75,6 +97,13 @@ void ReplayFileWriter::QueueWrite(std::unique_ptr<Recorder> recorder, BufferSucc
 
 void ReplayFileWriter::QueueWriteToFile(std::unique_ptr<Recorder> recorder, DiskWriteSuccessCallback onSuccess, WriteFailureCallback onFailure)
 {
+	if (m_activeThreads.load() >= kMaxConcurrentWrites)
+	{
+		Warning("[KZ] Replay writer saturated (%d active threads), dropping disk replay\n", m_activeThreads.load());
+		// recorder is destroyed when this scope exits, freeing its memory immediately.
+		QueueFailureCallback(std::move(onFailure), "Replay writer saturated; disk write dropped");
+		return;
+	}
 	SpawnThread(
 		[this, rec = std::move(recorder), onSuccess = std::move(onSuccess), onFailure = std::move(onFailure)]()
 		{

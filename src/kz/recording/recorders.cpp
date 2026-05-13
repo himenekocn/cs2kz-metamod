@@ -37,7 +37,10 @@ CheaterRecorder::CheaterRecorder(KZPlayer *player, const char *reason, KZPlayer 
 }
 
 // JumpRecorder Implementation
-JumpRecorder::JumpRecorder(Jump *jump) : Recorder(jump->player, 5.0f, RP_JUMPSTATS, false, DistanceTier_None)
+// Jump replays are reconstructed from TickData + SubtickData on playback and never read
+// server-received raw command data, so we explicitly opt out of copying cmdData /
+// cmdSubtickData (~1.5 KB per slot, 5 s × 64 tickrate ≈ 480 KB per jump saved).
+JumpRecorder::JumpRecorder(Jump *jump) : Recorder(jump->player, 5.0f, RP_JUMPSTATS, false, DistanceTier_None, /*copyCmdData=*/false)
 {
 	this->desiredStopTime = g_pKZUtils->GetServerGlobals()->curtime + 2.0f;
 	auto *jumpProto = replayHeader.mutable_jump();
@@ -83,7 +86,7 @@ void RunRecorder::End(f32 time, i32 numTeleports)
 }
 
 // Recorder Implementation
-Recorder::Recorder(KZPlayer *player, f32 numSeconds, ReplayType type, bool copyTimerEvents, DistanceTier copyJumps)
+Recorder::Recorder(KZPlayer *player, f32 numSeconds, ReplayType type, bool copyTimerEvents, DistanceTier copyJumps, bool copyCmdData)
 {
 	Recorder::Init(replayHeader, player, type);
 
@@ -233,7 +236,7 @@ Recorder::Recorder(KZPlayer *player, f32 numSeconds, ReplayType type, bool copyT
 			break;
 		}
 	}
-	if (shouldCopy)
+	if (shouldCopy && copyCmdData)
 	{
 		for (i32 i = first; i < circular->cmdData->GetReadAvailable(); i++)
 		{

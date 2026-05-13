@@ -88,7 +88,9 @@ struct Recorder
 	std::vector<CmdData> cmdData;
 	std::vector<SubtickData> cmdSubtickData;
 	// Copy the last numSeconds seconds of data from the circular recorder.
-	Recorder(KZPlayer *player, f32 numSeconds, ReplayType type, bool copyTimerEvents, DistanceTier copyJumps);
+	// copyCmdData controls whether server-received raw command data (cmdData / cmdSubtickData)
+	// is also copied; jump replays don't need it and skipping it roughly halves per-jump memory.
+	Recorder(KZPlayer *player, f32 numSeconds, ReplayType type, bool copyTimerEvents, DistanceTier copyJumps, bool copyCmdData = true);
 
 	bool ShouldStopAndSave(f32 currentTime)
 	{
@@ -164,6 +166,12 @@ using WriteFailureCallback = std::function<void(const char *error)>;
 class ReplayFileWriter
 {
 public:
+	// Hard cap on the number of concurrent in-flight replay serialization threads.
+	// If a new write request arrives while this many threads are already running,
+	// the request is dropped (the Recorder is destroyed immediately) and the
+	// associated failure callback (if any) is invoked on the main thread.
+	static constexpr int kMaxConcurrentWrites = 4;
+
 	ReplayFileWriter();
 	~ReplayFileWriter();
 
@@ -182,6 +190,9 @@ public:
 private:
 	template<typename F>
 	void SpawnThread(F &&work);
+
+	// Queue a failure callback to be invoked on the main thread via RunFrame().
+	void QueueFailureCallback(WriteFailureCallback onFailure, const char *error);
 
 	std::atomic<int> m_activeThreads {0};
 	std::mutex m_shutdownMutex;

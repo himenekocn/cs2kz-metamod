@@ -73,6 +73,14 @@ void KZRecordingService::Shutdown()
 
 void KZRecordingService::OnActivateServer()
 {
+	// Drain all in-flight replay write threads before resetting per-player state.
+	// Without this, detached writer threads spawned on the previous map keep their
+	// Recorder payloads (plus zstd buffers) alive across the map change, causing
+	// memory to monotonically climb across consecutive map cycles.
+	if (fileWriter)
+	{
+		fileWriter->Stop();
+	}
 	for (i32 i = 0; i < MAXPLAYERS + 1; i++)
 	{
 		KZPlayer *player = g_pKZPlayerManager->ToPlayer(i);
@@ -321,7 +329,11 @@ void KZRecordingService::OnClientDisconnect()
 	this->runRecorders.clear();
 	for (auto &recorder : this->jumpRecorders)
 	{
-		if (fileWriter)
+		// Mirror the runRecorders guard above: only dispatch jump recorders that have
+		// actually been finalized (desiredStopTime > 0 is set when the jump ended).
+		// Without this, every active in-progress jump fans out into a detached writer
+		// thread on disconnect, multiplying the in-flight memory footprint.
+		if (recorder.desiredStopTime > 0.0f && fileWriter)
 		{
 			auto recorderPtr = std::make_unique<JumpRecorder>(std::move(recorder));
 			this->CopyWeaponsToRecorder(recorderPtr.get());

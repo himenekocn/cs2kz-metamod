@@ -82,15 +82,17 @@ void Recorder::Init(ReplayHeader &hdr, KZPlayer *player, ReplayType type)
 
 void KZRecordingService::Reset()
 {
-	if (this->circularRecording)
-	{
-		this->circularRecording->tickData->Advance(this->circularRecording->tickData->GetReadAvailable());
-		this->circularRecording->subtickData->Advance(this->circularRecording->subtickData->GetReadAvailable());
-		this->circularRecording->cmdData->Advance(this->circularRecording->cmdData->GetReadAvailable());
-		this->circularRecording->cmdSubtickData->Advance(this->circularRecording->cmdSubtickData->GetReadAvailable());
-		this->circularRecording->rpEvents->Advance(this->circularRecording->rpEvents->GetReadAvailable());
-		this->circularRecording->jumps.clear();
-	}
+	// Fully release the per-player circular recorder (~34 MB of heap-resident ring
+	// buffers + earliestMode/earliestStyles metadata). Reset() is invoked on every
+	// map change for every touched slot; merely Advance()-ing the read cursor
+	// (the previous behavior) left the underlying unique_ptr<T[]> allocations alive
+	// for the lifetime of the player slot, pinning ~2 GB on a 64-slot server.
+	// The recorder is recreated lazily by EnsureCircularRecorderInitialized() if
+	// and when the player actually needs to record again. Deleting also implicitly
+	// clears the stale earliestMode / earliestStyles optionals.
+	delete this->circularRecording;
+	this->circularRecording = nullptr;
+
 	this->runRecorders.clear();
 	this->jumpRecorders.clear();
 	this->lastCmdNumReceived = 0;
