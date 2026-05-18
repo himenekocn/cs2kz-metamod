@@ -11,7 +11,7 @@ Automated translation linter reports for cs2kz-metamod.
 | **Total Languages** | 13 |
 | **Total Phrases** | 625 |
 | **Phrases Missing Translations** | 409 |
-| **Total Missing Entries** | 2647 |
+| **Total Missing Entries** | 2626 |
 | **Menu Files** | 10 |
 
 ## Language Coverage (Phrases)
@@ -26,7 +26,7 @@ Automated translation linter reports for cs2kz-metamod.
   ko (korean)          [█████████░░░░░░░░░░░]  45.9% (287/625)
   lv (latvian)         [██████████░░░░░░░░░░]  52.6% (329/625)
   pl (polish)          [████████████████░░░░]  82.4% (515/625)
-  ru (russian)         [███████████████████░]  96.6% (604/625)
+  ru (russian)         [████████████████████] 100.0% (625/625)
   sv (swedish)         [████████████░░░░░░░░]  62.9% (393/625)
   tr (turkish)         [████████░░░░░░░░░░░░]  42.1% (263/625)
   ua (ukrainian)       [████████████████████] 100.0% (625/625)
@@ -79,9 +79,9 @@ Automated translation linter reports for cs2kz-metamod.
 
 ## Last Updated
 
-- **Commit:** [`4630d94`](https://github.com/himenekocn/cs2kz-metamod/commit/4630d94b1f39895736851e6845e2b56406ec3fc4)
-- **Time:** 2026-05-13 09:02:44 UTC
-- **Message:** Force LF endings, update steamentworkingsockets.h formatting
+- **Commit:** [`0c00f74`](https://github.com/himenekocn/cs2kz-metamod/commit/0c00f747082f1d44dd8c65684f7af6073199b492)
+- **Time:** 2026-05-18 00:48:33 UTC
+- **Message:** Fix PBData not being correctly initialized
 
 ---
 
