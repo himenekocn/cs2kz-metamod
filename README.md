@@ -11,13 +11,13 @@ Automated translation linter reports for cs2kz-metamod.
 | **Total Languages** | 13 |
 | **Total Phrases** | 625 |
 | **Phrases Missing Translations** | 409 |
-| **Total Missing Entries** | 2626 |
+| **Total Missing Entries** | 2581 |
 | **Menu Files** | 10 |
 
 ## Language Coverage (Phrases)
 
 ```
-  chi (schinese)       [██████████████████░░]  92.8% (580/625)
+  chi (schinese)       [████████████████████] 100.0% (625/625)
   de (german)          [████████████████░░░░]  82.1% (513/625)
   en (english)         [████████████████████] 100.0% (625/625)
   es (spanish)         [█████████░░░░░░░░░░░]  45.4% (284/625)
@@ -79,9 +79,9 @@ Automated translation linter reports for cs2kz-metamod.
 
 ## Last Updated
 
-- **Commit:** [`0c00f74`](https://github.com/himenekocn/cs2kz-metamod/commit/0c00f747082f1d44dd8c65684f7af6073199b492)
-- **Time:** 2026-05-18 00:48:33 UTC
-- **Message:** Fix PBData not being correctly initialized
+- **Commit:** [`a99cc4d`](https://github.com/himenekocn/cs2kz-metamod/commit/a99cc4d720c60064f86da22de800e653e62ec0ee)
+- **Time:** 2026-05-18 01:15:34 UTC
+- **Message:** update chinese translations
 
 ---
 
