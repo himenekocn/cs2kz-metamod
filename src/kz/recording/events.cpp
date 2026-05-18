@@ -4,7 +4,6 @@
 #include "kz/checkpoint/kz_checkpoint.h"
 #include "kz/replays/kz_replaysystem.h"
 
-extern CConVar<bool> kz_replay_recording_debug;
 extern CConVar<i32> kz_replay_recording_min_jump_tier;
 
 // Timer event listener implementation
@@ -140,10 +139,7 @@ void KZRecordingService::OnTimerStart()
 		return;
 	}
 	this->runRecorders.push_back(RunRecorder(this->player));
-	if (kz_replay_recording_debug.Get())
-	{
-		META_CONPRINTF("kz_replay_recording_debug: Timer start\n");
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Timer start\n");
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_START, this->player->timerService->GetTime(),
 						   this->player->timerService->GetCourse()->id);
 	// Reset currentRunUUID to invalid state at timer start
@@ -156,10 +152,7 @@ void KZRecordingService::OnTimerStop()
 	{
 		return;
 	}
-	if (kz_replay_recording_debug.Get())
-	{
-		META_CONPRINTF("kz_replay_recording_debug: Timer stop\n");
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Timer stop\n");
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_STOP, this->player->timerService->GetTime());
 
 	// Remove all active run recorders, which are the ones without desired stop time set.
@@ -183,10 +176,7 @@ void KZRecordingService::OnTimerEnd()
 	{
 		return;
 	}
-	if (kz_replay_recording_debug.Get())
-	{
-		META_CONPRINTF("kz_replay_recording_debug: Timer end\n");
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Timer end\n");
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_END, this->player->timerService->GetTime(),
 						   this->player->timerService->GetCourse()->id);
 
@@ -209,10 +199,7 @@ void KZRecordingService::OnPause()
 	{
 		return;
 	}
-	if (kz_replay_recording_debug.Get())
-	{
-		META_CONPRINTF("kz_replay_recording_debug: Timer pause\n");
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Timer pause\n");
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_PAUSE,
 						   this->player->timerService->GetTimerRunning() ? this->player->timerService->GetTime() : 0.0f);
 }
@@ -223,10 +210,7 @@ void KZRecordingService::OnResume()
 	{
 		return;
 	}
-	if (kz_replay_recording_debug.Get())
-	{
-		META_CONPRINTF("kz_replay_recording_debug: Timer resume\n");
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Timer resume\n");
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_RESUME,
 						   this->player->timerService->GetTimerRunning() ? this->player->timerService->GetTime() : 0.0f);
 }
@@ -237,10 +221,7 @@ void KZRecordingService::OnSplit(i32 split)
 	{
 		return;
 	}
-	if (kz_replay_recording_debug.Get())
-	{
-		META_CONPRINTF("kz_replay_recording_debug: Timer split %d\n", split);
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Timer split %d\n", split);
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_SPLIT, this->player->timerService->GetTime(), split);
 }
 
@@ -250,10 +231,7 @@ void KZRecordingService::OnCPZ(i32 cpz)
 	{
 		return;
 	}
-	if (kz_replay_recording_debug.Get())
-	{
-		META_CONPRINTF("kz_replay_recording_debug: Checkpoint %d\n", cpz);
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Checkpoint %d\n", cpz);
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_CPZ, this->player->timerService->GetTime(), cpz);
 }
 
@@ -263,10 +241,7 @@ void KZRecordingService::OnStage(i32 stage)
 	{
 		return;
 	}
-	if (kz_replay_recording_debug.Get())
-	{
-		META_CONPRINTF("kz_replay_recording_debug: Stage %d\n", stage);
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Stage %d\n", stage);
 	this->InsertTimerEvent(RpEvent::RpEventData::TimerEvent::TIMER_STAGE, this->player->timerService->GetTime(), stage);
 }
 
@@ -276,10 +251,7 @@ void KZRecordingService::OnTeleport(const Vector *origin, const QAngle *angles, 
 	{
 		return;
 	}
-	if (kz_replay_recording_debug.Get())
-	{
-		META_CONPRINTF("kz_replay_recording_debug: Teleport\n");
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Teleport\n");
 	this->InsertTeleportEvent(origin, angles, velocity);
 }
 
@@ -304,10 +276,7 @@ void KZRecordingService::OnJumpFinish(Jump *jump)
 	{
 		return;
 	}
-	if (kz_replay_recording_debug.Get())
-	{
-		META_CONPRINTF("kz_replay_recording_debug: Jump finish\n");
-	}
+	KZ_LOG_DEBUG(LogChannel::Recording, "Jump finish\n");
 	this->EnsureCircularRecorderInitialized();
 	RpJumpStats rpJump;
 	RpJumpStats::FromJump(rpJump, jump);
